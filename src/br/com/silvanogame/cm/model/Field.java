@@ -1,5 +1,7 @@
 package br.com.silvanogame.cm.model;
 
+import br.com.silvanogame.cm.model.exception.ExplosionException;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +36,91 @@ public class Field {
             return true;
         } else {
             return false;
+        }
+    }
+
+    public void alternateMarking() {
+        if (!opened) {
+            marked = !marked;
+        }
+    }
+
+    public boolean open() {
+        if (!opened && !marked) {
+            opened = true;
+
+            if (mined) {
+                throw new ExplosionException();
+            }
+            if (safeNeighborhood()) {
+                neighbors.forEach(v -> v.open());
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean safeNeighborhood() {
+        return neighbors.stream().noneMatch(v -> v.mined);
+    }
+
+    public void mine(){
+        mined = true;
+    }
+
+    public boolean isMarked() {
+        return marked;
+    }
+
+    void setOpened(boolean opened){
+        this.opened = opened;
+    }
+
+    public boolean isMined() {
+        return mined;
+    }
+
+    public boolean isOpened() {
+        return opened;
+    }
+
+    public int getLine() {
+        return line;
+    }
+
+    public int getColumn() {
+        return column;
+    }
+
+     boolean missionAccomplished() {
+        boolean unveiling = !mined && opened;
+        boolean protectedField = mined && marked;
+
+        return unveiling || protectedField;
+    }
+
+    public long minesInTheNeighborhood() {
+        return neighbors.stream().filter(v -> v.mined).count();
+    }
+
+    public void restart() {
+        opened = false;
+        mined = false;
+        marked = false;
+    }
+
+    public String toString() {
+        if (marked) {
+            return "x";
+        } else if (opened && mined) {
+            return "*";
+        } else if (opened && minesInTheNeighborhood() > 0) {
+            return Long.toString(minesInTheNeighborhood());
+        } else if (opened) {
+            return " ";
+        } else {
+            return "?";
         }
     }
 }
